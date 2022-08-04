@@ -5,7 +5,14 @@ An Interpreter for my Airbnb clone
 
 import cmd
 from models.base_model import BaseModel
+from models.user import User
+from models.amenity import Amenity
+from models.city import City
+from models.place import Place
+from models.review import Review
+from models.state import State
 from models import storage
+import re
 import shlex
 import sys
 
@@ -16,7 +23,28 @@ class HBNBCommand(cmd.Cmd):
     """
 
     prompt = "(hbnb) "
-    all_models = ["BaseModel"]
+    all_models = ["BaseModel", "User", "Place", "State", "City", "Amenity", "Review"]
+
+    def precmd(self, line: str) -> str:
+        """
+            Runs after every input in console
+            Args:
+                line: the inputted text
+        """
+        regex = "^(\w+)\.(\w+)\(([^\)]*)"
+
+        if re.search(regex, line):
+            reg_pat = re.findall(regex, line)
+            c_name, method = reg_pat[0][0], reg_pat[0][1]
+            args = reg_pat[0][2]
+
+            if args:
+                temp = [arg.strip("'") for arg in reg_pat[0][2].split(", ")]
+                args = " ".join(temp)
+
+            return "{} {} {}".format(method, c_name, args)
+        else:
+            return super().precmd(line)
 
     def do_EOF(self, args):
         """
@@ -46,19 +74,42 @@ class HBNBCommand(cmd.Cmd):
         """
 
         if args:
-            try:
-                new_obj = eval(args)()
+            parsed = shlex.split(args)
+            if parsed in self.all_models:
+                new_obj = eval(parsed[0])()
                 print(new_obj.id)
                 new_obj.save()
-            except Exception:
+            else:
                 print("** class doesn't exist **")
         else:
             print("** class name missing **")
 
     def help_create(self):
         msg = ["create a new instance of an object",
-               "Usage: create <class name>"]
+                "Usage: create <class name>"]
         print("\n".join(msg))
+
+    def do_count(self, args):
+        """
+        Counts an object passed or all if none is passed
+        """
+
+        all_objs = storage.all()
+        all_objs_list = list()
+        if args:
+            args = shlex.split(args)
+            if args[0] in self.all_models:
+                for key in all_objs:
+                    if type(all_objs[key]).__name__ == args[0]:
+                        all_objs_list.append(str(all_objs[key]))
+            else:
+                print("** class doesn't exist **")
+                return
+        else:
+            for key in all_objs:
+                all_objs_list.append(str(all_objs[key]))
+        print(len(all_objs_list))
+
 
     def do_show(self, args):
         """
@@ -78,7 +129,7 @@ class HBNBCommand(cmd.Cmd):
 
         else:
             all_objs = storage.all()
-            key = ".".join(args)
+            key = ".".join(args[:2])
             if key in all_objs:
                 obj = all_objs[key]
                 print(obj)
@@ -91,7 +142,7 @@ class HBNBCommand(cmd.Cmd):
         """
 
         msg = ["Prints the string rep. of an ins based on class name & id",
-               "Usage: show <class name> <id>"]
+                "Usage: show <class name> <id>"]
         print("\n".join(msg))
 
     def do_destroy(self, args):
@@ -112,9 +163,10 @@ class HBNBCommand(cmd.Cmd):
 
         else:
             all_objs = storage.all()
-            key = ".".join(args)
+            key = ".".join(args[:2])
             if key in all_objs:
                 del all_objs[key]
+                storage.save()
             else:
                 print("** no instance found **")
 
@@ -124,7 +176,7 @@ class HBNBCommand(cmd.Cmd):
         """
 
         msg = ["Deletes an instance based on the class name",
-               "Usage: destroy <class name> <id>"]
+                "Usage: destroy <class name> <id>"]
         print("\n".join(msg))
 
     def do_all(self, args):
@@ -154,7 +206,7 @@ class HBNBCommand(cmd.Cmd):
         """
 
         msg = ["string rep. of all ins on the class(optional) provided",
-               "Usage: all [<class name>]"]
+                "Usage: all [<class name>]"]
         print("\n".join(msg))
 
     def emptyline(self):
@@ -195,10 +247,11 @@ class HBNBCommand(cmd.Cmd):
             print("** value missing **")
             return
 
-        setattr(obj, args[2].strip("\""), args[3].strip("\""))
+        setattr(obj, args[2], args[3])
+        obj.save()
 
     def help_update(self):
-        """ 
+        """
         Help for "update" command
         """
 
