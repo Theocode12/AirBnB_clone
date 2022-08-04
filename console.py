@@ -50,6 +50,7 @@ class HBNBCommand(cmd.Cmd):
             if args:
                 temp = [arg.strip("'") for arg in reg_pat[0][2].split(", ")]
                 args = " ".join(temp)
+            # print(args.split(" ")[1])
 
             return "{} {} {}".format(method, c_name, args)
         else:
@@ -234,8 +235,13 @@ class HBNBCommand(cmd.Cmd):
             print("** value missing **")
             return
 
-        setattr(obj, args[2], args[3])
-        obj.save()
+        if "{" and "}" in " ".join(args[2:]):
+            new_li = [sign for sign in args[2:]]
+            print("".join(new_li))
+        else:
+            print("here")
+            setattr(obj, args[2], args[3])
+            obj.save()
 
     def help_update(self):
         """
@@ -246,26 +252,17 @@ class HBNBCommand(cmd.Cmd):
                 "Usage: update <class name> <id> <attribute <value>"]
         print("\n".join(msg))
 
+    def do_count(self, args):
+        """
+        retrieves the number of instances of a class
+        """
+        args = shlex.split(args)
+        count = 0
+
+        for c_names in list(storage.all().keys()):
+            if c_names.split(".")[0] == args[0]:
+                count += 1
+        print(count)
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
-
-# regex = "(\w+)\.(\w+)\((.*)\)"
-
-# >>> args
-# "'id', 'email', 'someemail'"
-# >>> args.replace(", ", " ")
-# "'id' 'email' 'someemail'"
-# >>> [p.strip("'") for p in args.split(", ")]
-# ['id', 'email', 'someemail']
-# >>> " ".join([p.strip("'") for p in args.split(", ")])
-# 'id email someemail'
-# >>> p_s = " ".join([p.strip("'") for p in args.split(", ")])
-# >>> "{} {} {}".format(method, cls, p_s)
-# 'update User id email someemail'
-# >>> line = "(us.)"
-# >>> re.findall(regex, line)
-# []
-# >>> regex = "^(\w+)\.(\w+)\((.*)\)$"
-# >>> line = "User.show()"
-# >>> re.find
