@@ -40,7 +40,7 @@ class HBNBCommand(cmd.Cmd):
             Args:
                 line: the inputted text
         """
-        regex = "^(\w+)\.(\w+)\(([^\)]*)"
+        regex = r"^(\w+)\.(\w+)\(([^\)]*)"
 
         if re.search(regex, line):
             reg_pat = re.findall(regex, line)
@@ -96,7 +96,7 @@ class HBNBCommand(cmd.Cmd):
 
     def help_create(self):
         msg = ["create a new instance of an object",
-                "Usage: create <class name>"]
+               "Usage: create <class name>"]
         print("\n".join(msg))
 
     def do_show(self, args):
@@ -130,7 +130,7 @@ class HBNBCommand(cmd.Cmd):
         """
 
         msg = ["Prints the string rep. of an ins based on class name & id",
-                "Usage: show <class name> <id>"]
+               "Usage: show <class name> <id>"]
         print("\n".join(msg))
 
     def do_destroy(self, args):
@@ -164,7 +164,7 @@ class HBNBCommand(cmd.Cmd):
         """
 
         msg = ["Deletes an instance based on the class name",
-                "Usage: destroy <class name> <id>"]
+               "Usage: destroy <class name> <id>"]
         print("\n".join(msg))
 
     def do_all(self, args):
@@ -194,7 +194,7 @@ class HBNBCommand(cmd.Cmd):
         """
 
         msg = ["string rep. of all ins on the class(optional) provided",
-                "Usage: all [<class name>]"]
+               "Usage: all [<class name>]"]
         print("\n".join(msg))
 
     def emptyline(self):
@@ -235,11 +235,17 @@ class HBNBCommand(cmd.Cmd):
             print("** value missing **")
             return
 
-        if "{" and "}" in " ".join(args[2:]):
-            new_li = [sign for sign in args[2:]]
-            print("".join(new_li))
+        if "{" in args[2] and "}" in " ".join(args[3:]):
+            new_str = ""
+            for i, sign in enumerate(args[2:]):
+                seperate = ", "
+                if ":" in sign:
+                    seperate = " "
+                new_str += sign
+                if (i + 3) != len(args):
+                    new_str += seperate
+            # print(type(eval(new_str)))
         else:
-            print("here")
             setattr(obj, args[2], args[3])
             obj.save()
 
@@ -249,7 +255,7 @@ class HBNBCommand(cmd.Cmd):
         """
 
         msg = ["updates obect with new attributes",
-                "Usage: update <class name> <id> <attribute <value>"]
+               "Usage: update <class name> <id> <attribute <value>"]
         print("\n".join(msg))
 
     def do_count(self, args):
@@ -259,10 +265,15 @@ class HBNBCommand(cmd.Cmd):
         args = shlex.split(args)
         count = 0
 
-        for c_names in list(storage.all().keys()):
-            if c_names.split(".")[0] == args[0]:
+        if args:
+            for c_names in list(storage.all().keys()):
+                if c_names.split(".")[0] == args[0]:
+                    count += 1
+        else:
+            for c_names in list(storage.all().keys()):
                 count += 1
         print(count)
+
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
