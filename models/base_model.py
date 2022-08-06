@@ -64,4 +64,3 @@ class BaseModel:
 
         new_dic['__class__'] = self.__class__.__name__
         return new_dic
-

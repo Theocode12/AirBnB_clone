@@ -39,7 +39,6 @@ class FileStorage:
         with open(self.__file_path, 'w', encoding="utf-8") as filename:
             js.dump(new_dict, filename)
 
-
     def reload(self):
         """
         Deserializes objects from files
@@ -62,5 +61,5 @@ class FileStorage:
 
         else:
             for key, val in old_dict.items():
-                cls_name = re.findall("^\w+", key)
+                cls_name = re.findall(r"^\w+", key) # r signifies raw string
                 self.__objects[key] = eval(cls_name[0])(**val)
